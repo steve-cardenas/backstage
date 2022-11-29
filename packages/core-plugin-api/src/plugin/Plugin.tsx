@@ -23,6 +23,15 @@ import {
   PluginFeatureFlagConfig,
 } from './types';
 import { AnyApiFactory } from '../apis';
+import { ComponentAdaptation } from '../adaptable-components/types';
+
+type ExtensionType<T extends Extension<any>> = T extends Extension<infer U>
+  ? U
+  : never;
+
+type ExtractExtensions<T extends Record<string, Extension<any>>> = {
+  [K in keyof T]: ExtensionType<T[K]>;
+};
 
 /**
  * @internal
@@ -31,15 +40,35 @@ export class PluginImpl<
   Routes extends AnyRoutes,
   ExternalRoutes extends AnyExternalRoutes,
   PluginInputOptions extends {},
-> implements BackstagePlugin<Routes, ExternalRoutes, PluginInputOptions>
+  ComponentAdaptations extends Record<
+    string,
+    Extension<ComponentAdaptation<any, any>>
+  > = {},
+> implements
+    BackstagePlugin<
+      Routes,
+      ExternalRoutes,
+      PluginInputOptions,
+      ExtractExtensions<ComponentAdaptations>
+    >
 {
+  #_adaptations: ExtractExtensions<ComponentAdaptations>;
+
   constructor(
     private readonly config: PluginConfig<
       Routes,
       ExternalRoutes,
-      PluginInputOptions
+      PluginInputOptions,
+      ComponentAdaptations
     >,
-  ) {}
+  ) {
+    this.#_adaptations = Object.fromEntries(
+      Object.entries(config.adaptations ?? {}).map(([name, adaptation]) => [
+        name,
+        adaptation.expose(this),
+      ]),
+    ) as ExtractExtensions<ComponentAdaptations>;
+  }
 
   private options: {} | undefined = undefined;
 
@@ -57,6 +86,10 @@ export class PluginImpl<
 
   get routes(): Routes {
     return this.config.routes ?? ({} as Routes);
+  }
+
+  get adaptations(): ExtractExtensions<ComponentAdaptations> {
+    return this.#_adaptations;
   }
 
   get externalRoutes(): ExternalRoutes {
@@ -95,8 +128,19 @@ export function createPlugin<
   Routes extends AnyRoutes = {},
   ExternalRoutes extends AnyExternalRoutes = {},
   PluginInputOptions extends {} = {},
+  ComponentAdaptations extends Record<string, Extension<any>> = {},
 >(
-  config: PluginConfig<Routes, ExternalRoutes, PluginInputOptions>,
-): BackstagePlugin<Routes, ExternalRoutes, PluginInputOptions> {
+  config: PluginConfig<
+    Routes,
+    ExternalRoutes,
+    PluginInputOptions,
+    ComponentAdaptations
+  >,
+): BackstagePlugin<
+  Routes,
+  ExternalRoutes,
+  PluginInputOptions,
+  ExtractExtensions<ComponentAdaptations>
+> {
   return new PluginImpl(config);
 }

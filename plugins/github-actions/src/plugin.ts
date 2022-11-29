@@ -23,11 +23,20 @@ import {
   githubAuthApiRef,
   createRoutableExtension,
   createComponentExtension,
+  createComponentAdaptationExtension,
 } from '@backstage/core-plugin-api';
+import { linkComponentRef } from '@backstage/core-components';
 
 /** @public */
 export const githubActionsPlugin = createPlugin({
   id: 'github-actions',
+  adaptations: {
+    link: createComponentAdaptationExtension(linkComponentRef, {
+      id: 'github-actions-link-adaptation',
+      asyncAdaptation: () =>
+        import('./extensions/link').then(m => m.Adaptation),
+    }),
+  },
   apis: [
     createApiFactory({
       api: githubActionsApiRef,

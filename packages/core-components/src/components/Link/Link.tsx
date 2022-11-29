@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-import { configApiRef, useAnalytics, useApi } from '@backstage/core-plugin-api';
+import {
+  configApiRef,
+  createAdaptableForwardableComponent,
+  useAnalytics,
+  useApi,
+} from '@backstage/core-plugin-api';
 import classnames from 'classnames';
-// eslint-disable-next-line no-restricted-imports
+
 import MaterialLink, {
   LinkProps as MaterialLinkProps,
 } from '@material-ui/core/Link';
 import { makeStyles } from '@material-ui/core/styles';
-import React, { ElementType } from 'react';
+import React, { ElementType, Ref } from 'react';
 import {
   Link as RouterLink,
   LinkProps as RouterLinkProps,
@@ -54,11 +59,12 @@ const useStyles = makeStyles(
 
 export const isExternalUri = (uri: string) => /^([a-z+.-]+):/.test(uri);
 
-export type LinkProps = Omit<MaterialLinkProps, 'to'> &
+export type LinkProps = Omit<MaterialLinkProps, 'to' | 'ref'> &
   Omit<RouterLinkProps, 'to'> & {
     to: string;
     component?: ElementType<any>;
     noTrack?: boolean;
+    ref?: Ref<any>;
   };
 
 /**
@@ -116,7 +122,7 @@ const getNodeText = (node: React.ReactNode): string => {
   }
 
   // Base case: the node is just text. Return it.
-  if (['string', 'number'].includes(typeof node)) {
+  if (typeof node === 'string' || typeof node === 'number') {
     return String(node);
   }
 
@@ -124,13 +130,12 @@ const getNodeText = (node: React.ReactNode): string => {
   return '';
 };
 
-/**
- * Thin wrapper on top of material-ui's Link component, which...
- * - Makes the Link use react-router
- * - Captures Link clicks as analytics events.
- */
-export const Link = React.forwardRef<any, LinkProps>(
-  ({ onClick, noTrack, ...props }, ref) => {
+const adaptableLink = createAdaptableForwardableComponent<
+  LinkProps,
+  'to' | 'children'
+>({
+  id: 'link:v1',
+  Component: ({ props: { onClick, noTrack, ...props }, info: { ref } }) => {
     const classes = useStyles();
     const analytics = useAnalytics();
 
@@ -174,4 +179,13 @@ export const Link = React.forwardRef<any, LinkProps>(
       />
     );
   },
-) as (props: LinkProps) => JSX.Element;
+});
+
+export const linkComponentRef = adaptableLink.componentRef;
+
+/**
+ * Thin wrapper on top of material-ui's Link component, which...
+ * - Makes the Link use react-router
+ * - Captures Link clicks as analytics events.
+ */
+export const Link = adaptableLink.Component;

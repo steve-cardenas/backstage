@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Backstage Authors
+ * Copyright 2022 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-/**
- * Core API used by Backstage plugins
- *
- * @packageDocumentation
- */
+import { ComponentClass, FunctionComponent, ReactElement } from 'react';
 
-export * from './analytics';
-export * from './apis';
-export * from './plugin-options';
-export * from './app';
-export * from './adaptable-components';
-export * from './extensions';
-export * from './hooks';
-export * from './icons';
-export * from './plugin';
-export * from './routing';
+type FunctionComponentWithoutAutoChildren<P> = {
+  [K in keyof FunctionComponent<P>]: FunctionComponent<P>[K];
+} & {
+  (props: P, context?: any): ReactElement<any, any> | null;
+};
+
+/**
+ * A safer alternative to React (16/17) ComponentType which doesn't
+ * automatically include children. This is the same as in React 18.
+ */
+export type ComponentType<P> =
+  | ComponentClass<P>
+  | FunctionComponentWithoutAutoChildren<P>;
