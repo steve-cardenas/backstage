@@ -48,6 +48,11 @@ import {
   identityApiRef,
   BackstagePlugin,
 } from '@backstage/core-plugin-api';
+import {
+  EntityLink,
+  parseEntityRef,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
 import { ApiFactoryRegistry, ApiResolver } from '../apis/system';
 import {
   childDiscoverer,
@@ -75,19 +80,16 @@ import {
   AppOptions,
   BackstageApp,
   SignInPageProps,
+  CompatiblePlugin,
+  MetadataSpec,
 } from './types';
 import { AppThemeProvider } from './AppThemeProvider';
 import { defaultConfigLoader } from './defaultConfigLoader';
 import { ApiRegistry } from '../apis/system/ApiRegistry';
 import { resolveRouteBindings } from './resolveRouteBindings';
+import { PluginMetadataExtender } from './PluginMetadataDecoration';
 import { BackstageRouteObject } from '../routing/types';
 import { isReactRouterBeta } from './isReactRouterBeta';
-
-type CompatiblePlugin =
-  | BackstagePlugin
-  | (Omit<BackstagePlugin, 'getFeatureFlags'> & {
-      output(): Array<{ type: 'feature-flag'; name: string }>;
-    });
 
 const InternalAppContext = createContext<{
   routeObjects: BackstageRouteObject[];
@@ -245,13 +247,19 @@ class AppContextImpl implements AppContext {
   }
 }
 
+function getFullEntityRef(entityRef: string, defaultKind = 'Group') {
+  return stringifyEntityRef(parseEntityRef(entityRef, { defaultKind }));
+}
+
 export class AppManager implements BackstageApp {
   private apiHolder?: ApiHolder;
   private configApi?: ConfigApi;
 
   private readonly apis: Iterable<AnyApiFactory>;
   private readonly icons: NonNullable<AppOptions['icons']>;
+  private readonly metadata: MetadataSpec;
   private readonly plugins: Set<CompatiblePlugin>;
+  private readonly pluginMetadataExtender: PluginMetadataExtender;
   private readonly components: AppComponents;
   private readonly themes: AppTheme[];
   private readonly configLoader?: AppConfigLoader;
@@ -262,9 +270,21 @@ export class AppManager implements BackstageApp {
   private readonly apiFactoryRegistry: ApiFactoryRegistry;
 
   constructor(options: AppOptions) {
+    this.pluginMetadataExtender = new PluginMetadataExtender(options);
     this.apis = options.apis ?? [];
     this.icons = options.icons;
-    this.plugins = new Set((options.plugins as CompatiblePlugin[]) ?? []);
+    this.metadata = Object.fromEntries(
+      Object.entries(options.metadata ?? {}).map(([entityRef, val]) => [
+        getFullEntityRef(entityRef),
+        val,
+      ]),
+    );
+    this.plugins = new Set(options.plugins);
+    this.plugins.forEach(plugin => {
+      plugin.__internalSetMetadataExtender?.(
+        this.pluginMetadataExtender.extend,
+      );
+    });
     this.components = options.components;
     this.themes = options.themes as AppTheme[];
     this.configLoader = options.configLoader ?? defaultConfigLoader;
@@ -319,7 +339,12 @@ export class AppManager implements BackstageApp {
         //               the app, rather than having to wait for the provider to render.
         //               For now we need to push the additional plugins we find during
         //               collection and then make sure we initialize things afterwards.
-        result.collectedPlugins.forEach(plugin => this.plugins.add(plugin));
+        result.collectedPlugins.forEach(plugin => {
+          plugin.__internalSetMetadataExtender?.(
+            this.pluginMetadataExtender.extend,
+          );
+          this.plugins.add(plugin);
+        });
         this.verifyPlugins(this.plugins);
 
         // Initialize APIs once all plugins are available
@@ -526,6 +551,14 @@ export class AppManager implements BackstageApp {
     };
 
     return AppRouter;
+  }
+
+  public __experimentalGetEntityLinks(entityRef: string): EntityLink[] {
+    const { __experimentalEntityLinks = {} } = this.metadata;
+
+    const fullEntityRef = getFullEntityRef(entityRef);
+
+    return __experimentalEntityLinks[fullEntityRef] ?? [];
   }
 
   private getApiHolder(): ApiHolder {

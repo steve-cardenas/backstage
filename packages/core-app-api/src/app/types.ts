@@ -24,8 +24,10 @@ import {
   SubRouteRef,
   ExternalRouteRef,
   IdentityApi,
+  PluginInfo,
 } from '@backstage/core-plugin-api';
 import { AppConfig } from '@backstage/config';
+import { EntityLink } from '@backstage/catalog-model';
 
 /**
  * Props for the `BootErrorPage` component of {@link AppComponents}.
@@ -177,6 +179,33 @@ export type AppRouteBinder = <
 ) => void;
 
 /**
+ * Metadata, such as plugin information and ownership, or catalog metadata.
+ *
+ * @public
+ */
+export type MetadataSpec = {
+  /**
+   * A map of plugin package names to internal groups (as entity refs defaulting
+   * to kind Group).
+   *
+   * The package name (key) can contain wildcards and will be matched using
+   * minimatch.
+   */
+  __experimentalPluginOwners?: Record<string, string>[];
+
+  /**
+   * Decorate the PluginInfo part of a plugin
+   */
+  __experimentalPluginInfoDecorator?: (plugin: PluginInfo, id: string) => void;
+
+  /**
+   * A map of entities to entity links. The default entity kind is Group, but
+   * can be a full entity ref for another kind.
+   */
+  __experimentalEntityLinks?: Record<string, EntityLink[]>;
+};
+
+/**
  * The options accepted by {@link createSpecializedApp}.
  *
  * @public
@@ -212,6 +241,12 @@ export type AppOptions = {
       >; // support for old plugins
     }
   >;
+
+  /**
+   * Supply metadata information, such as plugin ownership and metadata, or
+   * catalog metadata.
+   */
+  metadata?: MetadataSpec;
 
   /**
    * Supply components to the app to override the default ones.
@@ -309,6 +344,12 @@ export type BackstageApp = {
    * and any other components that should only be available while signed in.
    */
   getRouter(): ComponentType<{}>;
+
+  /**
+   * Get additional entity links for a certain catalog entity. The default kind
+   * is Group.
+   */
+  __experimentalGetEntityLinks?(entityRef: string): EntityLink[];
 };
 
 /**
@@ -338,3 +379,13 @@ export type AppContext = {
    */
   getComponents(): AppComponents;
 };
+
+/**
+ * @private (undocumented)
+ * @internal
+ */
+export type CompatiblePlugin =
+  | BackstagePlugin<any, any>
+  | (Omit<BackstagePlugin<any, any>, 'getFeatureFlags'> & {
+      output(): Array<{ type: 'feature-flag'; name: string }>;
+    });

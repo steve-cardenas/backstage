@@ -353,6 +353,7 @@ describe('Integration Test', () => {
           getApis() {
             return [];
           },
+          setMetadataExtender() {},
           output() {
             return [
               {

@@ -26,6 +26,7 @@ import { ComponentType } from 'react';
 import { Config } from '@backstage/config';
 import { ConfigReader } from '@backstage/config';
 import { DiscoveryApi } from '@backstage/core-plugin-api';
+import { EntityLink } from '@backstage/catalog-model';
 import { ErrorApi } from '@backstage/core-plugin-api';
 import { ErrorApiError } from '@backstage/core-plugin-api';
 import { ErrorApiErrorContext } from '@backstage/core-plugin-api';
@@ -50,6 +51,7 @@ import { oktaAuthApiRef } from '@backstage/core-plugin-api';
 import { oneloginAuthApiRef } from '@backstage/core-plugin-api';
 import { OpenIdConnectApi } from '@backstage/core-plugin-api';
 import { PendingOAuthRequest } from '@backstage/core-plugin-api';
+import { PluginInfo } from '@backstage/core-plugin-api';
 import { ProfileInfo } from '@backstage/core-plugin-api';
 import { ProfileInfoApi } from '@backstage/core-plugin-api';
 import { PropsWithChildren } from 'react';
@@ -208,6 +210,7 @@ export type AppOptions = {
       >;
     }
   >;
+  metadata?: MetadataSpec;
   components: AppComponents;
   themes: (Partial<AppTheme> & Omit<AppTheme, 'theme'>)[];
   configLoader?: AppConfigLoader;
@@ -261,6 +264,7 @@ export type BackstageApp = {
   getSystemIcon(key: string): IconComponent | undefined;
   getProvider(): ComponentType<{}>;
   getRouter(): ComponentType<{}>;
+  __experimentalGetEntityLinks?(entityRef: string): EntityLink[];
 };
 
 // @public
@@ -404,6 +408,13 @@ export class LocalStorageFeatureFlags implements FeatureFlagsApi {
   // (undocumented)
   save(options: FeatureFlagsSaveOptions): void;
 }
+
+// @public
+export type MetadataSpec = {
+  __experimentalPluginOwners?: Record<string, string>[];
+  __experimentalPluginInfoDecorator?: (plugin: PluginInfo, id: string) => void;
+  __experimentalEntityLinks?: Record<string, EntityLink[]>;
+};
 
 // @public
 export class MicrosoftAuth {
