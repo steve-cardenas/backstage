@@ -4110,7 +4110,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@backstage/errors@^1.2.0-next.0, @backstage/errors@^1.2.3, @backstage/errors@workspace:^, @backstage/errors@workspace:packages/errors":
+"@backstage/errors@^1.2.3, @backstage/errors@workspace:^, @backstage/errors@workspace:packages/errors":
   version: 0.0.0-use.local
   resolution: "@backstage/errors@workspace:packages/errors"
   dependencies:
@@ -9571,7 +9571,7 @@ __metadata:
     "@backstage/catalog-model": "workspace:^"
     "@backstage/cli": "workspace:^"
     "@backstage/config": "workspace:^"
-    "@backstage/errors": ^1.2.0-next.0
+    "@backstage/errors": "workspace:^"
     "@backstage/plugin-events-node": "workspace:^"
     "@octokit/webhooks-types": ^7.0.0
     git-url-parse: ^13.0.0
