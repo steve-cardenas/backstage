@@ -117,6 +117,12 @@ export type MicrosoftGraphProviderConfig = {
   groupSelect?: string[];
 
   /**
+   * Whether to ingest groups that are members of the found/filtered/searched groups.
+   * Default value is `false`.
+   */
+  groupIngestMemberGroups?: boolean;
+
+  /**
    * By default, the Microsoft Graph API only provides the basic feature set
    * for querying. Certain features are limited to advanced query capabilities
    * (see https://docs.microsoft.com/en-us/graph/aad-advanced-queries)
@@ -292,6 +298,9 @@ export function readProviderConfig(
   const groupFilter = config.getOptionalString('group.filter');
   const groupSearch = config.getOptionalString('group.search');
   const groupSelect = config.getOptionalStringArray('group.select');
+  const groupIngestMemberGroups = config.getOptionalBoolean(
+    'group.ingestMemberGroups',
+  );
 
   const queryMode = config.getOptionalString('queryMode');
   if (
@@ -347,6 +356,7 @@ export function readProviderConfig(
     groupFilter,
     groupSearch,
     groupSelect,
+    groupIngestMemberGroups,
     queryMode,
     userGroupMemberFilter,
     userGroupMemberSearch,
