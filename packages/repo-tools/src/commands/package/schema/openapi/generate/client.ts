@@ -49,6 +49,7 @@ async function runOpenApiGeneratorCommand({
 
   const additionalPropertiesList = additionalProperties
     ? Object.entries(additionalProperties)
+        .filter(([, value]) => value)
         .map(([key, value]) => `${key}=${value}`)
         .join(',')
     : undefined;
@@ -59,8 +60,7 @@ async function runOpenApiGeneratorCommand({
       `--additional-properties=${additionalPropertiesList}`,
     );
   }
-  console.log(additionalOptions);
-  const { stdout } = await exec(
+  await exec(
     'node',
     [
       resolvePackagePath('@openapitools/openapi-generator-cli', 'main.js'),
@@ -78,7 +78,6 @@ async function runOpenApiGeneratorCommand({
       ),
       '--generator-key',
       'v3.0',
-      '--global-property debugOperations=true',
       ...additionalOptions,
     ],
     {
@@ -89,7 +88,6 @@ async function runOpenApiGeneratorCommand({
       },
     },
   );
-  fs.writeFileSync('test.txt', stdout);
 
   await exec(
     `yarn backstage-cli package lint --fix ${resolvedQueryClientDirectory}`,
@@ -121,7 +119,6 @@ async function generateReactQueryClient({
     clientImport: string | undefined;
   };
 }) {
-  console.log(reactQuery);
   await runOpenApiGeneratorCommand({
     outputPath: reactQuery.outputPackage,
     templateName: 'typescript-backstage-react-query',
@@ -129,8 +126,7 @@ async function generateReactQueryClient({
       clientImport:
         outputPackage === reactQuery.outputPackage
           ? '.'
-          : // OpenAPI generator doesn't support '@'
-            `@${reactQuery.clientImport}`,
+          : reactQuery.clientImport,
       apiRefNamespace: reactQuery.apiRefNamespace || 'core',
     },
   });
@@ -173,9 +169,18 @@ export async function command({
           clientImport,
         },
       });
+      console.log(
+        chalk.green(
+          `Generated client in ${
+            queryOutputPackage || outputPackage
+          }/${OUTPUT_PATH}`,
+        ),
+      );
     }
     console.log(
-      chalk.green(`Generated client in ${outputPackage}/${OUTPUT_PATH}`),
+      chalk.green(
+        `Generated react query client in ${outputPackage}/${OUTPUT_PATH}`,
+      ),
     );
   } catch (err) {
     console.log();

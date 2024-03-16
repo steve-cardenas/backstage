@@ -32,6 +32,7 @@ export async function command(opts: OptionValues) {
         outputPackage: opts.reactQueryOutputPackage,
         enabled: opts.enableReactQuery,
         clientImport: opts.reactQueryClientImport,
+        apiRefNamespace: opts.reactQueryApiRefNamespace,
       },
     });
   }
