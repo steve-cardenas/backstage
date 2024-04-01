@@ -47,7 +47,7 @@ import {
   locationInput,
   validateRequestBody,
 } from './util';
-import { createOpenApiRouter } from '../schema/openapi.generated';
+import { createOpenApiRouter } from '../generated';
 import { PluginTaskScheduler } from '@backstage/backend-tasks';
 import { parseEntityPaginationParams } from './request/parseEntityPaginationParams';
 import { AuthService, HttpAuthService } from '@backstage/backend-plugin-api';
