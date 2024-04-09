@@ -30,14 +30,25 @@ import type { Config, AppConfig } from '@backstage/config';
 import { getPackages } from '@manypkg/get-packages';
 import { ObservableConfigProxy } from './ObservableConfigProxy';
 import { isValidUrl } from '../lib/urls';
+import path from 'path';
 
 /** @public */
 export async function createConfigSecretEnumerator(options: {
   logger: LoggerService;
   dir?: string;
+  entry?: string;
   schema?: ConfigSchema;
 }): Promise<(config: Config) => Iterable<string>> {
-  const { logger, dir = process.cwd() } = options;
+  const {
+    logger,
+    dir = path.resolve(
+      process.argv[1].replace(
+        // Strip the entry point path.
+        new RegExp(`${options?.entry ?? 'src/index'}$`),
+        '',
+      ),
+    ),
+  } = options;
   const { packages } = await getPackages(dir);
 
   const schema =
