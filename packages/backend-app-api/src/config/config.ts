@@ -28,35 +28,53 @@ import {
 import { ConfigReader } from '@backstage/config';
 import type { Config, AppConfig } from '@backstage/config';
 import { getPackages } from '@manypkg/get-packages';
+import { findRoot } from '@manypkg/find-root';
 import { ObservableConfigProxy } from './ObservableConfigProxy';
 import { isValidUrl } from '../lib/urls';
 import path from 'path';
+import fs from 'fs';
+
+// Looks for a package.json with a workspace config to identify the root of the monorepo
+function findRootPath(searchDir: string): string | undefined {
+  let currentPath = searchDir;
+
+  // Some confidence check to avoid infinite loop
+  for (let i = 0; i < 1000; i++) {
+    const packagePath = resolvePath(currentPath, 'package.json');
+    const exists = fs.existsSync(packagePath);
+    if (exists) {
+      return resolvePath(currentPath);
+    }
+
+    let newPath = path.dirname(currentPath);
+    if (newPath === currentPath) {
+      newPath = path.join(currentPath, '..');
+    }
+    currentPath = newPath;
+  }
+
+  throw new Error(
+    `Iteration limit reached when searching for root package.json at ${searchDir}`,
+  );
+}
 
 /** @public */
 export async function createConfigSecretEnumerator(options: {
   logger: LoggerService;
   dir?: string;
-  entry?: string;
   schema?: ConfigSchema;
 }): Promise<(config: Config) => Iterable<string>> {
-  const {
-    logger,
-    dir = path.resolve(
-      process.argv[1].replace(
-        // Strip the entry point path.
-        new RegExp(`${options?.entry ?? 'src/index'}$`),
-        '',
-      ),
-    ),
-  } = options;
+  const closestPackage =
+    findRootPath(process.argv[1] ?? process.cwd()) ?? process.cwd();
+  const { logger, dir = closestPackage } = options;
+  const { rootDir } = await findRoot(dir);
   const { packages } = await getPackages(dir);
 
   const schema =
     options.schema ??
     (await loadConfigSchema({
-      dependencies: packages
-        .filter(p => p.dir === dir)
-        .map(e => e.packageJson.name),
+      dependencies: [packages.find(p => p.dir === dir)?.packageJson.name ?? ''],
+      workspaceDirectory: rootDir,
     }));
 
   return (config: Config) => {
@@ -67,6 +85,7 @@ export async function createConfigSecretEnumerator(options: {
         ignoreSchemaErrors: true,
       },
     );
+
     const secrets = new Set<string>();
     JSON.parse(
       JSON.stringify(secretsData.data),
