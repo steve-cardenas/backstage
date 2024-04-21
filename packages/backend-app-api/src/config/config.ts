@@ -34,7 +34,7 @@ import path from 'path';
 import fs from 'fs';
 
 // Looks for a package.json with a workspace config to identify the root of the monorepo
-function findRootPath(searchDir: string): string | undefined {
+function findRootPath(searchDir: string): string {
   let currentPath = searchDir;
 
   // Some confidence check to avoid infinite loop
@@ -42,7 +42,7 @@ function findRootPath(searchDir: string): string | undefined {
     const packagePath = resolvePath(currentPath, 'package.json');
     const exists = fs.existsSync(packagePath);
     if (exists) {
-      return resolvePath(currentPath);
+      return currentPath;
     }
 
     let newPath = path.dirname(currentPath);
@@ -64,16 +64,22 @@ export async function createConfigSecretEnumerator(options: {
   schema?: ConfigSchema;
 }): Promise<(config: Config) => Iterable<string>> {
   const { logger, dir } = options;
-  const closestPackage =
-    dir ?? findRootPath(process.argv[1] ?? process.cwd()) ?? process.cwd();
-  const { packages } = await getPackages(closestPackage);
+  const closestPackagePath =
+    dir ?? findRootPath(path.resolve(process.argv[1]) ?? process.cwd());
+  const { packages } = await getPackages(closestPackagePath);
+
+  const closestPackage = packages.find(p => p.dir === closestPackagePath);
+  const dependencies = Object.keys({
+    ...closestPackage?.packageJson.dependencies,
+    ...closestPackage?.packageJson.devDependencies,
+    ...closestPackage?.packageJson.peerDependencies,
+    ...closestPackage?.packageJson.optionalDependencies,
+  });
 
   const schema =
     options.schema ??
     (await loadConfigSchema({
-      dependencies: [
-        packages.find(p => p.dir === closestPackage)?.packageJson.name ?? '',
-      ],
+      dependencies,
     }));
 
   return (config: Config) => {
