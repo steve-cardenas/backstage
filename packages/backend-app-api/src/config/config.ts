@@ -28,7 +28,6 @@ import {
 import { ConfigReader } from '@backstage/config';
 import type { Config, AppConfig } from '@backstage/config';
 import { getPackages } from '@manypkg/get-packages';
-import { findRoot } from '@manypkg/find-root';
 import { ObservableConfigProxy } from './ObservableConfigProxy';
 import { isValidUrl } from '../lib/urls';
 import path from 'path';
@@ -64,17 +63,17 @@ export async function createConfigSecretEnumerator(options: {
   dir?: string;
   schema?: ConfigSchema;
 }): Promise<(config: Config) => Iterable<string>> {
+  const { logger, dir } = options;
   const closestPackage =
-    findRootPath(process.argv[1] ?? process.cwd()) ?? process.cwd();
-  const { logger, dir = closestPackage } = options;
-  const { rootDir } = await findRoot(dir);
-  const { packages } = await getPackages(dir);
+    dir ?? findRootPath(process.argv[1] ?? process.cwd()) ?? process.cwd();
+  const { packages } = await getPackages(closestPackage);
 
   const schema =
     options.schema ??
     (await loadConfigSchema({
-      dependencies: [packages.find(p => p.dir === dir)?.packageJson.name ?? ''],
-      workspaceDirectory: rootDir,
+      dependencies: [
+        packages.find(p => p.dir === closestPackage)?.packageJson.name ?? '',
+      ],
     }));
 
   return (config: Config) => {
