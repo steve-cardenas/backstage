@@ -6551,7 +6551,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@backstage/plugin-events-backend-module-azure@workspace:plugins/events-backend-module-azure":
+"@backstage/plugin-events-backend-module-azure@workspace:^, @backstage/plugin-events-backend-module-azure@workspace:plugins/events-backend-module-azure":
   version: 0.0.0-use.local
   resolution: "@backstage/plugin-events-backend-module-azure@workspace:plugins/events-backend-module-azure"
   dependencies:
@@ -6563,7 +6563,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@backstage/plugin-events-backend-module-bitbucket-cloud@workspace:plugins/events-backend-module-bitbucket-cloud":
+"@backstage/plugin-events-backend-module-bitbucket-cloud@workspace:^, @backstage/plugin-events-backend-module-bitbucket-cloud@workspace:plugins/events-backend-module-bitbucket-cloud":
   version: 0.0.0-use.local
   resolution: "@backstage/plugin-events-backend-module-bitbucket-cloud@workspace:plugins/events-backend-module-bitbucket-cloud"
   dependencies:
@@ -6587,7 +6587,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@backstage/plugin-events-backend-module-github@workspace:plugins/events-backend-module-github":
+"@backstage/plugin-events-backend-module-github@workspace:^, @backstage/plugin-events-backend-module-github@workspace:plugins/events-backend-module-github":
   version: 0.0.0-use.local
   resolution: "@backstage/plugin-events-backend-module-github@workspace:plugins/events-backend-module-github"
   dependencies:
@@ -9560,6 +9560,24 @@ __metadata:
     react: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-dom: ^16.13.1 || ^17.0.0 || ^18.0.0
     react-router-dom: 6.0.0-beta.0 || ^6.3.0
+  languageName: unknown
+  linkType: soft
+
+"@backstage/plugin-techdocs-backend-module-events@workspace:^, @backstage/plugin-techdocs-backend-module-events@workspace:plugins/techdocs-backend-module-events":
+  version: 0.0.0-use.local
+  resolution: "@backstage/plugin-techdocs-backend-module-events@workspace:plugins/techdocs-backend-module-events"
+  dependencies:
+    "@backstage/backend-common": "workspace:^"
+    "@backstage/catalog-client": "workspace:^"
+    "@backstage/catalog-model": "workspace:^"
+    "@backstage/cli": "workspace:^"
+    "@backstage/config": "workspace:^"
+    "@backstage/errors": "workspace:^"
+    "@backstage/plugin-events-node": "workspace:^"
+    "@octokit/webhooks-types": ^7.0.0
+    git-url-parse: ^13.0.0
+    node-fetch: ^2.6.7
+    winston: ^3.2.1
   languageName: unknown
   linkType: soft
 
@@ -14367,6 +14385,13 @@ __metadata:
   version: 7.1.0
   resolution: "@octokit/webhooks-types@npm:7.1.0"
   checksum: 5aea38c38e97cb1b8d54c805c17c4015ee937d0b1ad550adc64eaf2e90bfbaf1e00c878490c10b43e31a11563e8d02183b86268ed588b04e39b22d5fd27807cf
+  languageName: node
+  linkType: hard
+
+"@octokit/webhooks-types@npm:^7.0.0":
+  version: 7.5.0
+  resolution: "@octokit/webhooks-types@npm:7.5.0"
+  checksum: b541000b255d820e3ccd6a8032ccd2467d705e299b96d2d69f311eb23f880c757adaa5302cd1cd644490117071bfb5f241cb0354053d65fc0bff55c96320348c
   languageName: node
   linkType: hard
 
@@ -27489,6 +27514,9 @@ __metadata:
     "@backstage/plugin-devtools-backend": "workspace:^"
     "@backstage/plugin-entity-feedback-backend": "workspace:^"
     "@backstage/plugin-events-backend": "workspace:^"
+    "@backstage/plugin-events-backend-module-azure": "workspace:^"
+    "@backstage/plugin-events-backend-module-bitbucket-cloud": "workspace:^"
+    "@backstage/plugin-events-backend-module-github": "workspace:^"
     "@backstage/plugin-events-node": "workspace:^"
     "@backstage/plugin-explore-backend": "workspace:^"
     "@backstage/plugin-jenkins-backend": "workspace:^"
@@ -27520,6 +27548,7 @@ __metadata:
     "@backstage/plugin-tech-insights-backend-module-jsonfc": "workspace:^"
     "@backstage/plugin-tech-insights-node": "workspace:^"
     "@backstage/plugin-techdocs-backend": "workspace:^"
+    "@backstage/plugin-techdocs-backend-module-events": "workspace:^"
     "@backstage/plugin-todo-backend": "workspace:^"
     "@gitbeaker/node": ^35.1.0
     "@octokit/rest": ^19.0.3
@@ -29004,7 +29033,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"git-url-parse@npm:^13.1.0":
+"git-url-parse@npm:^13.0.0, git-url-parse@npm:^13.1.0":
   version: 13.1.1
   resolution: "git-url-parse@npm:13.1.1"
   dependencies:
