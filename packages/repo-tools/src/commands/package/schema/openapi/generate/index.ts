@@ -29,10 +29,12 @@ export async function command(opts: OptionValues) {
     await generateClient({
       outputPackage: opts.clientPackage,
       reactQuery: {
-        outputPackage: opts.reactQueryOutputPackage,
+        outputPackage: opts.reactQueryPackage,
         enabled: opts.enableReactQuery,
         clientImport: opts.reactQueryClientImport,
         apiRefNamespace: opts.reactQueryApiRefNamespace,
+        apiRefName: opts.reactQueryApiRefName,
+        apiRefImport: opts.reactQueryApiRefImport,
       },
     });
   }

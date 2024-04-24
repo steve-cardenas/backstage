@@ -44,7 +44,7 @@
     "build": "backstage-cli package build",
     "clean": "backstage-cli package clean",
     "fuzz": "backstage-repo-tools package schema openapi fuzz --exclude-checks response_schema_conformance",
-    "generate": "backstage-repo-tools package schema openapi generate --server --client-package packages/catalog-client",
+    "generate": "backstage-repo-tools package schema openapi generate --server --client-package packages/catalog-client --enable-react-query --react-query-package plugins/catalog-react --react-query-client-import '@backstage/catalog-common/client'",
     "lint": "backstage-cli package lint",
     "prepack": "backstage-cli package prepack",
     "postpack": "backstage-cli package postpack",
