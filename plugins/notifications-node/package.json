@@ -34,6 +34,7 @@
     "@backstage/backend-plugin-api": "workspace:^",
     "@backstage/catalog-client": "workspace:^",
     "@backstage/catalog-model": "workspace:^",
+    "@backstage/config": "workspace:^",
     "@backstage/plugin-notifications-common": "workspace:^",
     "@backstage/plugin-signals-node": "workspace:^",
     "knex": "^3.0.0",
