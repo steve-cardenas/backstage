@@ -198,6 +198,7 @@ export namespace coreServices {
   const logger: ServiceRef<LoggerService, 'plugin'>;
   const permissions: ServiceRef<PermissionsService, 'plugin'>;
   const pluginMetadata: ServiceRef<PluginMetadataService, 'plugin'>;
+  const instanceMetadata: ServiceRef<InstanceMetadataService, 'root'>;
   const rootHttpRouter: ServiceRef<RootHttpRouterService, 'root'>;
   const rootLifecycle: ServiceRef<RootLifecycleService, 'root'>;
   const rootLogger: ServiceRef<RootLoggerService, 'root'>;
@@ -312,6 +313,18 @@ export interface ExtensionPointConfig {
 }
 
 // @public (undocumented)
+export type FeatureMetadata =
+  | {
+      type: 'plugin';
+      pluginId: string;
+    }
+  | {
+      type: 'module';
+      pluginId: string;
+      moduleId: string;
+    };
+
+// @public (undocumented)
 export interface HttpAuthService {
   // (undocumented)
   credentials<TAllowed extends keyof BackstagePrincipalTypes = 'unknown'>(
@@ -350,6 +363,12 @@ export interface HttpRouterServiceAuthPolicy {
 
 // @public (undocumented)
 export interface IdentityService extends IdentityApi {}
+
+// @public (undocumented)
+export interface InstanceMetadataService {
+  // (undocumented)
+  getInstalledFeatures(): FeatureMetadata[];
+}
 
 // @public (undocumented)
 export interface LifecycleService {
