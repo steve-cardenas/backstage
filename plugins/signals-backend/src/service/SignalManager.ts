@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 import { EventParams, EventsService } from '@backstage/plugin-events-node';
-import { SignalPayload } from '@backstage/plugin-signals-node';
+import {
+  SignalChannelRegistration,
+  SignalPayload,
+} from '@backstage/plugin-signals-node';
 import { RawData, WebSocket } from 'ws';
 import { v4 as uuid } from 'uuid';
 import { JsonObject } from '@backstage/types';
 import {
+  BackstageCredentials,
   BackstageUserInfo,
   LoggerService,
+  PermissionsService,
 } from '@backstage/backend-plugin-api';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
 
 /**
  * @internal
@@ -29,6 +35,7 @@ import {
 export type SignalConnection = {
   id: string;
   user: string;
+  credentials?: BackstageCredentials;
   ws: WebSocket;
   ownershipEntityRefs: string[];
   subscriptions: Set<string>;
@@ -40,7 +47,13 @@ export type SignalConnection = {
 export type SignalManagerOptions = {
   events: EventsService;
   logger: LoggerService;
+  permissions?: PermissionsService;
 };
+
+type EventBrokerEvent = {
+  type: 'signal' | 'registration';
+} & SignalPayload &
+  SignalChannelRegistration;
 
 /** @internal */
 export class SignalManager {
@@ -48,30 +61,43 @@ export class SignalManager {
     string,
     SignalConnection
   >();
+  private registeredChannels: Map<string, SignalChannelRegistration> = new Map<
+    string,
+    SignalChannelRegistration
+  >();
   private events: EventsService;
   private logger: LoggerService;
+  private permissions?: PermissionsService;
 
   static create(options: SignalManagerOptions) {
     return new SignalManager(options);
   }
 
   private constructor(options: SignalManagerOptions) {
-    ({ events: this.events, logger: this.logger } = options);
+    ({
+      events: this.events,
+      logger: this.logger,
+      permissions: this.permissions,
+    } = options);
 
     this.events.subscribe({
       id: 'signals',
       topics: ['signals'],
       onEvent: (params: EventParams) =>
-        this.onEventBrokerEvent(params.eventPayload as SignalPayload),
+        this.onEventBrokerEvent(params.eventPayload as EventBrokerEvent),
     });
   }
 
-  addConnection(ws: WebSocket, identity?: BackstageUserInfo) {
+  addConnection(
+    ws: WebSocket,
+    identity?: BackstageUserInfo,
+    credentials?: BackstageCredentials,
+  ) {
     const id = uuid();
-
     const conn = {
       id,
       user: identity?.userEntityRef ?? 'user:default/guest',
+      credentials,
       ws,
       ownershipEntityRefs: identity?.ownershipEntityRefs ?? [
         'user:default/guest',
@@ -101,23 +127,58 @@ export class SignalManager {
       if (isBinary) {
         return;
       }
-      try {
-        const json = JSON.parse(data.toString()) as JsonObject;
-        this.handleMessage(conn, json);
-      } catch (err: any) {
+
+      const json = JSON.parse(data.toString()) as JsonObject;
+      this.handleMessage(conn, json).catch(err => {
         this.logger.error(
           `Invalid message received from connection ${id}: ${err}`,
         );
-      }
+      });
     });
   }
 
-  private handleMessage(connection: SignalConnection, message: JsonObject) {
+  private async authorizeSubscribe(
+    connection: SignalConnection,
+    channel: string,
+  ) {
+    if (!this.registeredChannels.has(channel)) {
+      return true;
+    }
+
+    const registration = this.registeredChannels.get(channel);
+
+    if (!registration?.permissions) {
+      return true;
+    }
+
+    if (!connection.credentials || !this.permissions) {
+      return false;
+    }
+
+    const decisions = await this.permissions.authorize(
+      registration.permissions,
+      {
+        credentials: connection.credentials,
+      },
+    );
+    const denied = decisions.some(
+      decision => decision.result === AuthorizeResult.DENY,
+    );
+    return !denied;
+  }
+
+  private async handleMessage(
+    connection: SignalConnection,
+    message: JsonObject,
+  ) {
     if (message.action === 'subscribe' && message.channel) {
-      this.logger.info(
-        `Connection ${connection.id} subscribed to ${message.channel}`,
-      );
-      connection.subscriptions.add(message.channel as string);
+      const channel = message.channel as string;
+      if (!(await this.authorizeSubscribe(connection, channel))) {
+        return;
+      }
+
+      this.logger.info(`Connection ${connection.id} subscribed to ${channel}`);
+      connection.subscriptions.add(channel);
     } else if (message.action === 'unsubscribe' && message.channel) {
       this.logger.info(
         `Connection ${connection.id} unsubscribed from ${message.channel}`,
@@ -126,7 +187,16 @@ export class SignalManager {
     }
   }
 
-  private async onEventBrokerEvent(eventPayload: SignalPayload): Promise<void> {
+  private async onEventBrokerEvent(
+    eventPayload: EventBrokerEvent,
+  ): Promise<void> {
+    // Handle signal channel registration
+    if (eventPayload.type === 'registration') {
+      this.registeredChannels.set(eventPayload.channel, eventPayload);
+      return;
+    }
+
+    // Handle signal publish
     if (!eventPayload.channel || !eventPayload.message) {
       return;
     }
@@ -141,21 +211,20 @@ export class SignalManager {
     }
 
     // Actual websocket message sending
-    this.connections.forEach(conn => {
-      if (!conn.subscriptions.has(channel)) {
-        return;
+    for (const conn of this.connections.values()) {
+      if (conn.ws.readyState !== WebSocket.OPEN) {
+        continue;
       }
 
-      // Sending to all users can be done with broadcast
+      if (!conn.subscriptions.has(channel)) {
+        continue;
+      }
+
       if (
         recipients.type !== 'broadcast' &&
         !conn.ownershipEntityRefs.some((ref: string) => users.includes(ref))
       ) {
-        return;
-      }
-
-      if (conn.ws.readyState !== WebSocket.OPEN) {
-        return;
+        continue;
       }
 
       conn.ws.send(jsonMessage, err => {
@@ -163,6 +232,6 @@ export class SignalManager {
           this.logger.error(`Failed to send message to ${conn.id}: ${err}`);
         }
       });
-    });
+    }
   }
 }

@@ -106,6 +106,20 @@ setInterval(async () => {
 }, 5000);
 ```
 
+It's possible to also add permissions checks for the recipients. For this, you must first register your
+signals channel with necessary permissions:
+
+```ts
+await signalService.registerChannel({
+  channel: 'my_plugin',
+  permissions: [{ permission: devToolsConfigReadPermission }],
+});
+```
+
+This requires also that `signals-backend` has permission evaluator set up. In case the permission evaluator is missing
+and the channel is registered, the subscriptions to this channel will be ignored. Also, subscriptions with no access
+to _ALL_ required permissions will be ignored and users will not receive signals from this channel.
+
 To receive this message in the frontend, check the documentation of `@backstage/plugin-signals` and
 `@backstage/plugin-signals-react`.
 
@@ -118,6 +132,7 @@ to work:
 eventBroker.publish({
   topic: 'signals',
   eventPayload: {
+    type: 'signal',
     recipients: { type: 'user', entityRef: 'user:default/user1' },
     message: {
       message: 'hello world',

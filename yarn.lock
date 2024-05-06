@@ -7245,6 +7245,7 @@ __metadata:
     "@backstage/backend-common": "workspace:^"
     "@backstage/backend-defaults": "workspace:^"
     "@backstage/backend-plugin-api": "workspace:^"
+    "@backstage/backend-test-utils": "workspace:^"
     "@backstage/cli": "workspace:^"
     "@backstage/config": "workspace:^"
     "@backstage/plugin-auth-backend": "workspace:^"
@@ -7252,6 +7253,8 @@ __metadata:
     "@backstage/plugin-auth-node": "workspace:^"
     "@backstage/plugin-events-backend": "workspace:^"
     "@backstage/plugin-events-node": "workspace:^"
+    "@backstage/plugin-permission-common": "workspace:^"
+    "@backstage/plugin-permission-node": "workspace:^"
     "@backstage/plugin-signals-node": "workspace:^"
     "@backstage/types": "workspace:^"
     "@types/express": "*"
@@ -7279,6 +7282,7 @@ __metadata:
     "@backstage/config": "workspace:^"
     "@backstage/plugin-auth-node": "workspace:^"
     "@backstage/plugin-events-node": "workspace:^"
+    "@backstage/plugin-permission-common": "workspace:^"
     "@backstage/types": "workspace:^"
     "@types/express": ^4.17.21
     express: ^4.17.1
