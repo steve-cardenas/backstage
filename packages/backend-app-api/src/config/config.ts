@@ -78,6 +78,10 @@ export async function createConfigSecretEnumerator(options: {
   const { packages } = await getPackages(closestPackagePath!);
 
   const closestPackage = packages.find(p => p.dir === closestPackagePath);
+
+  // loadConfigSchema expects a list of dependencies that it can discover through node_modules,
+  //  the closest package is not guaranteed to show up in node_modules and may not be resolved
+  //  so we pass guaranteed node_modules items.
   const dependencies = Object.keys({
     ...closestPackage?.packageJson.dependencies,
     ...closestPackage?.packageJson.devDependencies,
