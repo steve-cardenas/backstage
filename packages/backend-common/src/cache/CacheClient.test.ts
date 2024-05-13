@@ -124,6 +124,53 @@ describe('CacheClient', () => {
     });
   });
 
+  describe('CacheClient.iterator', () => {
+    it('returns an async generator', async () => {
+      const sut = new DefaultCacheClient(client, () => client, {});
+      const expectedGenerator = (async function* generator() {})();
+      client.iterator = jest.fn().mockReturnValue(expectedGenerator);
+
+      const actualGenerator = sut.iterator();
+      expect(actualGenerator).toEqual(expectedGenerator);
+    });
+
+    it('fail for long keys', async () => {
+      const keyv = new Keyv();
+      const sut = new DefaultCacheClient(keyv, () => keyv, {});
+      const key = 'x'.repeat(251);
+
+      await sut.set(key, 'foo');
+
+      try {
+        for await (const _ of sut.iterator()) {
+          // consume the iterator
+        }
+      } catch (err) {
+        // eslint-disable-next-line jest/no-conditional-expect
+        expect(err).toBeDefined();
+        return;
+      }
+      throw new Error('Expected an error to be thrown');
+    });
+  });
+
+  describe('CacheClient.clear', () => {
+    it('resolves without error when underlying client resolves', async () => {
+      const sut = new DefaultCacheClient(client, () => client, {});
+      client.clear = jest.fn().mockResolvedValue(undefined);
+
+      await expect(sut.clear()).resolves.not.toThrow();
+    });
+
+    it('rejects on underlying error', async () => {
+      const sut = new DefaultCacheClient(client, () => client, {});
+      const expectedError = new Error('Some runtime error');
+      client.clear = jest.fn().mockRejectedValue(expectedError);
+
+      await expect(sut.clear()).rejects.toEqual(expectedError);
+    });
+  });
+
   describe('CacheClient.withOptions', () => {
     it('merges together options to create a new instance', async () => {
       const factory = jest.fn();

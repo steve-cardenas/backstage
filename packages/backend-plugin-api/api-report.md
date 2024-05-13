@@ -175,6 +175,12 @@ export interface CacheService {
 }
 
 // @public
+export interface CacheServiceInternal extends CacheService {
+  clear(): Promise<void>;
+  iterator(): AsyncGenerator<[string, JsonValue], void, any>;
+}
+
+// @public
 export type CacheServiceOptions = {
   defaultTtl?: number;
 };
