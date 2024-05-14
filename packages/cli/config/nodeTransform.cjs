@@ -21,15 +21,19 @@ addHook(
   (code, filename) => {
     const transformed = transformSync(code, {
       filename,
-      sourceMaps: 'inline',
-      module: { type: 'commonjs' },
+      // sourceMaps: 'inline',
+      module: { type: 'commonjs', ignoreDynamic: true },
       jsc: {
         target: 'es2022',
         parser: {
           syntax: 'typescript',
+          dynamicImport: true,
         },
       },
     });
+    if (filename.includes('backend')) {
+      console.log(transformed.code);
+    }
     process.send?.({ type: 'watch', path: filename });
     return transformed.code;
   },
