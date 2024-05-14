@@ -75,6 +75,7 @@ import { Writable } from 'stream';
 export type AuthCallbackOptions = {
   onAuth: AuthCallback;
   logger?: LoggerService;
+  signingKey?: string;
 };
 
 // @public
@@ -404,6 +405,7 @@ export class Git {
       name: string;
       email: string;
     };
+    sign?: boolean;
   }): Promise<string>;
   currentBranch(options: {
     dir: string;
@@ -433,6 +435,7 @@ export class Git {
       name: string;
       email: string;
     };
+    sign?: boolean;
   }): Promise<MergeResult>;
   // (undocumented)
   push(options: {
@@ -824,6 +827,7 @@ export type StaticAuthOptions = {
   password?: string;
   token?: string;
   logger?: LoggerService;
+  signingKey?: string;
 };
 
 // @public
