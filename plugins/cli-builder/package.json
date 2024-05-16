@@ -1,0 +1,67 @@
+{
+  "name": "@backstage/cli-builder",
+  "version": "0.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "license": "Apache-2.0",
+  "private": true,
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
+  },
+  "backstage": {
+    "role": "node-library"
+  },
+  "bin": {
+    "my": "bin/my"
+  },
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "@backstage/backend-app-api": "workspace:^",
+    "@backstage/backend-common": "workspace:^",
+    "@backstage/backend-plugin-api": "workspace:^",
+    "@backstage/catalog-client": "workspace:^",
+    "@backstage/catalog-model": "workspace:^",
+    "@backstage/config": "workspace:^",
+    "@backstage/config-loader": "workspace:^",
+    "@backstage/errors": "workspace:^",
+    "@types/express": "*",
+    "cli-table": "^0.3.11",
+    "commander": "^12.0.0-1",
+    "cross-fetch": "^4.0.0",
+    "dot-object": "^2.1.4",
+    "fs-extra": "^11.2.0",
+    "lodash": "^4.17.21",
+    "node-fetch": "^2.6.7",
+    "openapi-merge": "^1.3.2",
+    "openapi3-ts": "^4.2.2",
+    "react": "^18.2.0",
+    "uri-template": "^2.0.0",
+    "winston": "^3.2.1",
+    "yn": "^4.0.0"
+  },
+  "devDependencies": {
+    "@backstage/cli": "workspace:^",
+    "@types/dot-object": "^2.1.6",
+    "@types/supertest": "^2.0.8",
+    "msw": "^1.0.0",
+    "supertest": "^6.2.4",
+    "ts-node": "^10.9.2"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}

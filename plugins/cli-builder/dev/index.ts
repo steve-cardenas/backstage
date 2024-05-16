@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The Backstage Authors
+ * Copyright 2024 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getRootLogger } from '@backstage/backend-common';
+import { createCli } from '../src/start/plugin';
 
-/**
- * Core API used by Backstage backend apps.
- *
- * @packageDocumentation
- */
+async function startBackend() {
+  const backend = createCli();
 
-export * from './config';
-export * from './http';
-export * from './logging';
-export * from './wiring';
-export * from './services/implementations';
-export { DependencyGraph, type NodeInput } from './lib/DependencyGraph';
+  backend.add(import('../src/plugins/OpenApiPlugin'));
+
+  await backend.start();
+}
+
+const logger = getRootLogger();
+
+startBackend()
+  .catch(err => {
+    logger.error(err);
+    process.exit(1);
+  })
+  .then(() => process.exit(0));

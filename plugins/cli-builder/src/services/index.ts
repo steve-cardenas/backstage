@@ -1,5 +1,7 @@
+import { createServiceRef } from '@backstage/backend-plugin-api';
+
 /*
- * Copyright 2020 The Backstage Authors
+ * Copyright 2024 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export namespace coreCliServices {
+  export const rootCommander = createServiceRef<
+    import('./RootCommanderService').RootCommanderService
+  >({ id: 'core.rootCommander', scope: 'root' });
 
-/**
- * Core API used by Backstage backend apps.
- *
- * @packageDocumentation
- */
-
-export * from './config';
-export * from './http';
-export * from './logging';
-export * from './wiring';
-export * from './services/implementations';
-export { DependencyGraph, type NodeInput } from './lib/DependencyGraph';
+  export const commander = createServiceRef<
+    import('./CommanderService').CommanderService
+  >({ id: 'core.commander' });
+}
