@@ -26,6 +26,8 @@ import {
   identityApiRef,
 } from '@backstage/frontend-plugin-api';
 import CreateComponentIcon from '@material-ui/icons/AddCircleOutline';
+import NewComponentIcon from '@material-ui/icons/Widgets';
+import RegisterComponentIcon from '@material-ui/icons/Backup';
 import {
   compatWrapper,
   convertLegacyRouteRef,
@@ -78,9 +80,27 @@ const scaffolderPage = createPageExtension({
 });
 
 const scaffolderNavItem = createNavItemExtension({
-  routeRef: convertLegacyRouteRef(rootRouteRef),
-  title: 'Create...',
   icon: CreateComponentIcon,
+  title: 'Create...',
+  routeRef: convertLegacyRouteRef(rootRouteRef),
+});
+
+const scaffolderNewNavItem = createNavItemExtension({
+  name: 'new',
+  attachTo: { id: 'nav-item:scaffolder', input: 'items' },
+  title: 'New component',
+  icon: NewComponentIcon,
+  routeRef: convertLegacyRouteRef(rootRouteRef),
+  disabled: true,
+});
+
+const scaffolderRegisterNavItem = createNavItemExtension({
+  name: 'register',
+  attachTo: { id: 'nav-item:scaffolder', input: 'items' },
+  title: 'Register component',
+  icon: RegisterComponentIcon,
+  routeRef: convertLegacyRouteRef(registerComponentRouteRef),
+  disabled: true,
 });
 
 /** @alpha */
@@ -98,5 +118,11 @@ export default createPlugin({
     registerComponent: registerComponentRouteRef,
     viewTechDoc: viewTechDocRouteRef,
   }),
-  extensions: [scaffolderApi, scaffolderPage, scaffolderNavItem],
+  extensions: [
+    scaffolderApi,
+    scaffolderPage,
+    scaffolderNavItem,
+    scaffolderNewNavItem,
+    scaffolderRegisterNavItem,
+  ],
 });

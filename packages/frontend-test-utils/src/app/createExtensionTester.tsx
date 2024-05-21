@@ -20,6 +20,7 @@ import { RenderResult, render } from '@testing-library/react';
 import { createSpecializedApp } from '@backstage/frontend-app-api';
 import {
   ExtensionDefinition,
+  ExternalRouteRef,
   IconComponent,
   RouteRef,
   coreExtensionData,
@@ -28,7 +29,7 @@ import {
   createExtensionOverrides,
   createNavItemExtension,
   createRouterExtension,
-  useRouteRef,
+  useRouteRefResolver,
 } from '@backstage/frontend-plugin-api';
 import { MockConfigApi } from '@backstage/test-utils';
 import { JsonArray, JsonObject, JsonValue } from '@backstage/types';
@@ -38,19 +39,20 @@ import { resolveExtensionDefinition } from '../../../frontend-plugin-api/src/wir
 import { toInternalExtensionDefinition } from '../../../frontend-plugin-api/src/wiring/createExtension';
 
 const NavItem = (props: {
-  routeRef: RouteRef<undefined>;
+  routeRef: RouteRef<undefined> | ExternalRouteRef<undefined>;
   title: string;
   icon: IconComponent;
 }) => {
   const { routeRef, title, icon: Icon } = props;
-  const to = useRouteRef(routeRef)();
-  return (
+  const resolvedRouteRef = useRouteRefResolver();
+  const to = resolvedRouteRef(routeRef)?.();
+  return to ? (
     <li>
       <Link to={to}>
         <Icon /> {title}
       </Link>
     </li>
-  );
+  ) : null;
 };
 
 const TestAppNavExtension = createExtension({

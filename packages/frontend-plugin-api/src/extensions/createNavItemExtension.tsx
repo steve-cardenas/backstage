@@ -16,41 +16,69 @@
 
 import { IconComponent } from '@backstage/core-plugin-api';
 import { createSchemaFromZod } from '../schema/createSchemaFromZod';
-import { createExtension, createExtensionDataRef } from '../wiring';
-import { RouteRef } from '../routing';
+import {
+  createExtension,
+  createExtensionDataRef,
+  createExtensionInput,
+} from '../wiring';
+import { ExternalRouteRef, RouteRef } from '../routing';
 
 /**
  * Helper for creating extensions for a nav item.
  * @public
  */
 export function createNavItemExtension(options: {
+  type?: 'drawer' | 'dropdown';
   namespace?: string;
   name?: string;
-  routeRef: RouteRef<undefined>;
+  attachTo?: { id: string; input: string };
+  disabled?: boolean;
+  routeRef: RouteRef<undefined> | ExternalRouteRef<undefined>;
   title: string;
   icon: IconComponent;
+  modal?: (props: { open: boolean; handleClose: () => void }) => JSX.Element;
 }) {
-  const { routeRef, title, icon, namespace, name } = options;
+  const {
+    type,
+    icon,
+    title,
+    name,
+    namespace,
+    modal,
+    routeRef,
+    attachTo,
+    disabled,
+  } = options;
   return createExtension({
     namespace,
     name,
+    disabled,
     kind: 'nav-item',
-    attachTo: { id: 'app/nav', input: 'items' },
+    attachTo: attachTo ?? { id: 'app/nav', input: 'items' },
     configSchema: createSchemaFromZod(z =>
       z.object({
         title: z.string().default(title),
       }),
     ),
+    inputs: {
+      items: createExtensionInput({
+        target: createNavItemExtension.targetDataRef.optional(),
+      }),
+    },
     output: {
       navTarget: createNavItemExtension.targetDataRef,
     },
-    factory: ({ config }) => ({
-      navTarget: {
-        title: config.title,
-        icon,
-        routeRef,
-      },
-    }),
+    factory: ({ config }) => {
+      return {
+        navTarget: {
+          title: config.title,
+          type,
+          icon,
+          routeRef,
+          modal,
+        },
+      };
+    },
   });
 }
 
@@ -58,8 +86,10 @@ export function createNavItemExtension(options: {
 export namespace createNavItemExtension {
   // TODO(Rugvip): Should this be broken apart into separate refs? title/icon/routeRef
   export const targetDataRef = createExtensionDataRef<{
+    type?: 'drawer' | 'dropdown';
     title: string;
     icon: IconComponent;
-    routeRef: RouteRef<undefined>;
+    routeRef: RouteRef<undefined> | ExternalRouteRef<undefined>;
+    modal?: (props: { open: boolean; handleClose: () => void }) => JSX.Element;
   }>('core.nav-item.target');
 }
