@@ -46,6 +46,7 @@ const NOTIFICATION_COLUMNS = [
   'user',
   'read',
   'saved',
+  'metadata',
 ];
 
 export const normalizeSeverity = (input?: string): NotificationSeverity => {
@@ -103,6 +104,10 @@ export class DatabaseNotificationsStore implements NotificationsStore {
         severity: row.severity,
         scope: row.scope,
         icon: row.icon,
+        metadata:
+          typeof row.metadata === 'string'
+            ? JSON.parse(row.metadata)
+            : row.metadata,
       },
     }));
   };
@@ -121,6 +126,7 @@ export class DatabaseNotificationsStore implements NotificationsStore {
       scope: notification.payload?.scope,
       saved: notification.saved,
       read: notification.read,
+      metadata: notification.payload?.metadata,
     };
   };
 
@@ -135,6 +141,7 @@ export class DatabaseNotificationsStore implements NotificationsStore {
       description: notification.payload?.description,
       severity: normalizeSeverity(notification.payload?.severity),
       scope: notification.payload?.scope,
+      metadata: notification.payload?.metadata,
     };
   };
 
@@ -161,6 +168,15 @@ export class DatabaseNotificationsStore implements NotificationsStore {
 
     const query = this.db.from(subQuery).where(q => {
       q.where('user', user).orWhereNull('user');
+    });
+
+    Object.keys(options.metadata ?? {}).forEach(key => {
+      query.whereJsonPath(
+        'metadata' as never,
+        `$.${key}`,
+        '=',
+        options.metadata?.[key],
+      );
     });
 
     if (orderField && orderField.length > 0) {
@@ -328,6 +344,7 @@ export class DatabaseNotificationsStore implements NotificationsStore {
       topic: notification.payload.topic,
       updated: new Date(),
       severity: normalizeSeverity(notification.payload?.severity),
+      metadata: notification.payload.metadata,
       read: null,
     };
 
