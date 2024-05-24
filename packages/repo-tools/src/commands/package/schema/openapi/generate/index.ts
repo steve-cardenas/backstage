@@ -26,7 +26,17 @@ export async function command(opts: OptionValues) {
     process.exit(1);
   }
   if (opts.clientPackage) {
-    await generateClient(opts.clientPackage);
+    await generateClient({
+      outputPackage: opts.clientPackage,
+      reactQuery: {
+        outputPackage: opts.reactQueryPackage,
+        enabled: opts.enableReactQuery,
+        clientImport: opts.reactQueryClientImport,
+        apiRefNamespace: opts.reactQueryApiRefNamespace,
+        apiRefName: opts.reactQueryApiRefName,
+        apiRefImport: opts.reactQueryApiRefImport,
+      },
+    });
   }
   if (opts.server) {
     await generateServer();
