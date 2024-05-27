@@ -92,3 +92,9 @@ export const CopyCode = () => (
     <CodeSnippet text={JAVASCRIPT} language="javascript" showCopyCodeButton />
   </InfoCard>
 );
+
+export const ScrollToLine = () => (
+  <InfoCard title="Highlight Color">
+    <CodeSnippet text={JAVASCRIPT} language="javascript" scrollToLine={1} />
+  </InfoCard>
+);

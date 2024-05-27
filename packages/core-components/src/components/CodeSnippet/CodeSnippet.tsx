@@ -15,11 +15,11 @@
  */
 
 import Box from '@material-ui/core/Box';
-import { useTheme } from '@material-ui/core/styles';
-import React from 'react';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
+import React, { useEffect, useRef } from 'react';
 import type {} from 'react-syntax-highlighter';
 import LightAsync from 'react-syntax-highlighter/dist/esm/light-async';
-import dark from 'react-syntax-highlighter/dist/esm/styles/hljs/dark';
+import lioshi from 'react-syntax-highlighter/dist/esm/styles/hljs/lioshi';
 import docco from 'react-syntax-highlighter/dist/esm/styles/hljs/docco';
 
 import { CopyTextButton } from '../CopyTextButton';
@@ -55,9 +55,17 @@ export interface CodeSnippetProps {
    */
   showCopyCodeButton?: boolean;
   /**
+   * Choose any hightlighter style from {@link https://react-syntax-highlighter.github.io/react-syntax-highlighter/demo/ | react-syntax-highlighter}
+   */
+  highlighterStyle?: { [key: string]: React.CSSProperties } | undefined;
+  /**
    * Array of line numbers to highlight
    */
   highlightedNumbers?: number[];
+  /**
+   * Line number to scroll to. It uses a parent container (e.g. whole page) to scroll to given line.
+   */
+  scrollToLine?: number;
   /**
    * Custom styles applied to code
    *
@@ -67,6 +75,15 @@ export interface CodeSnippetProps {
    */
   customStyle?: any;
 }
+
+const useStyles = makeStyles(
+  theme => ({
+    highlight: {
+      backgroundColor: theme.palette.type === 'dark' ? '#0078D7' : '#e6ffed',
+    },
+  }),
+  { name: 'BackstageCodeSnippet' },
+);
 
 /**
  * Thin wrapper on top of {@link https://react-syntax-highlighter.github.io/react-syntax-highlighter/ | react-syntax-highlighter}
@@ -80,12 +97,33 @@ export function CodeSnippet(props: CodeSnippetProps) {
     language,
     showLineNumbers = false,
     highlightedNumbers,
+    highlighterStyle,
     customStyle,
+    scrollToLine,
     showCopyCodeButton = false,
   } = props;
   const theme = useTheme();
-  const mode = theme.palette.type === 'dark' ? dark : docco;
-  const highlightColor = theme.palette.type === 'dark' ? '#256bf3' : '#e6ffed';
+
+  let mode: typeof highlighterStyle;
+  if (highlighterStyle) {
+    mode = highlighterStyle;
+  } else {
+    mode = theme.palette.type === 'dark' ? lioshi : docco;
+  }
+
+  const lineNumberRef = useRef<React.RefObject<HTMLDivElement>>();
+
+  const classes = useStyles();
+
+  useEffect(() => {
+    if (!scrollToLine) {
+      return;
+    }
+    // wrapped in setTimeout to ensure that the line number ref is created
+    setTimeout(() => {
+      lineNumberRef.current?.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  }, [scrollToLine]);
 
   return (
     <Box position="relative">
@@ -96,15 +134,20 @@ export function CodeSnippet(props: CodeSnippetProps) {
         showLineNumbers={showLineNumbers}
         wrapLines
         lineNumberStyle={{ color: theme.palette.textVerySubtle }}
-        lineProps={(lineNumber: number) =>
-          highlightedNumbers?.includes(lineNumber)
+        lineProps={(lineNumber: number) => {
+          const ref =
+            lineNumber === scrollToLine
+              ? (lineNumberRef.current = React.createRef())
+              : undefined;
+          return highlightedNumbers?.includes(lineNumber)
             ? {
-                style: {
-                  backgroundColor: highlightColor,
-                },
+                ref,
+                class: classes.highlight,
               }
-            : {}
-        }
+            : {
+                ref,
+              };
+        }}
       >
         {text}
       </LightAsync>
