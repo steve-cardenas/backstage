@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "properties": {},
+  "definitions": {
+    "semverString": {
+      "type": "string",
+      "pattern": "^(\\^|\\~)?(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    }
+  },
+  "patternProperties": {
+    "^(?:@([^/]+?)[/])?([^/]+?)$": {
+      "type": "object",
+      "required": ["requiredVersion"],
+      "properties": {
+        "requiredVersion": {
+          "$ref": "#/definitions/semverString"
+        },
+        "version": {
+          "$ref": "#/definitions/semverString"
+        },
+        "singleton": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
