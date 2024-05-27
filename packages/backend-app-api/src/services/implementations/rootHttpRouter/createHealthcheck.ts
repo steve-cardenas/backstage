@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Backstage Authors
+ * Copyright 2024 The Backstage Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Request, Response } from 'express';
+import Router from 'express-promise-router';
 
-import { Handler } from 'express';
+export function createHealthcheck() {
+  const router = Router();
+  let handler = () => Promise.resolve({ status: 'ok' });
 
-/** @public */
-export interface HttpRouterServiceAuthPolicy {
-  path: string;
-  allow: 'unauthenticated' | 'user-cookie';
-}
+  router.get('/healthcheck', async (_request: Request, response: Response) => {
+    const status = await handler();
+    response.json(status);
+  });
 
-/**
- * @public
- */
-export interface HttpRouterService {
-  use(handler: Handler): void;
-  addAuthPolicy(policy: HttpRouterServiceAuthPolicy): void;
+  return {
+    router,
+    addHandler: (newHandler: () => Promise<any>) => {
+      handler = newHandler;
+    },
+  };
 }
