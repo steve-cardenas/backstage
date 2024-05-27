@@ -245,6 +245,7 @@ export type BitbucketServerIntegrationConfig = {
   token?: string;
   username?: string;
   password?: string;
+  rateLimit?: number;
 };
 
 // @public
