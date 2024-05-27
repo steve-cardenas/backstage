@@ -14,31 +14,27 @@
  * limitations under the License.
  */
 
+import * as GoogleCloud from '@google-cloud/storage';
 import { ConfigReader } from '@backstage/config';
 import { JsonObject } from '@backstage/types';
 import { DefaultReadTreeResponseFactory } from './tree';
 import { GoogleGcsUrlReader } from './GoogleGcsUrlReader';
 import { UrlReaderPredicateTuple } from './types';
-import packageinfo from '../../package.json';
+import packageinfo from '../../../../package.json';
 import { mockServices } from '@backstage/backend-test-utils';
 
 const bucketGetFilesMock = jest.fn();
-jest.mock('@google-cloud/storage', () => {
-  class Bucket {
-    getFiles(query: any) {
-      return bucketGetFilesMock(query);
-    }
+class Bucket {
+  getFiles(query: any) {
+    return bucketGetFilesMock(query);
   }
-  class Storage {
-    bucket() {
-      return new Bucket();
-    }
+}
+class Storage {
+  bucket() {
+    return new Bucket();
   }
-  return {
-    __esModule: true,
-    Storage,
-  };
-});
+}
+jest.spyOn(GoogleCloud, 'Storage').mockReturnValue(new Storage() as any);
 
 describe('GcsUrlReader', () => {
   const createReader = (config: JsonObject): UrlReaderPredicateTuple[] => {
