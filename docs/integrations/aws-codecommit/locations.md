@@ -20,7 +20,8 @@ To use this integration, add configuration to your `app-config.yaml`:
 ```yaml
 integrations:
   awsCodeCommit:
-    - accessKeyId: ${AWS_ACCESS_KEY_ID}
+    - region: eu-west-1
+      accessKeyId: ${AWS_ACCESS_KEY_ID}
       secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
 ```
 
@@ -34,10 +35,11 @@ instruct the AWS CodeCommit reader to assume a role before accessing CodeCommit:
 ```yaml
 integrations:
   awsCodeCommit:
-    - accessKeyId: ${AWS_ACCESS_KEY_ID}
-      secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    - region: eu-west-1
       roleArn: 'arn:aws:iam::xxxxxxxxxxxx:role/example-role'
       externalId: 'some-id' # optional
 ```
 
-When no entries are added, the AWS CodeCommit reader will add a default entry that uses the [standard credentials provider chain](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html).
+Each entry is a structure with the following required elements:
+
+- `region`: The AWS region to connect to, to communicate with the CodeCommit services. If no host is provided, this value will be used to determine the host url.
